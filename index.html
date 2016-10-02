@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="randomhost/icinga : Provides check and notification commands for the Icinga monitoring system.">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>randomhost/icinga</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/randomhost/icinga">View on GitHub</a>
+
+          <h1 id="project_title">randomhost/icinga</h1>
+          <h2 id="project_tagline">Provides check and notification commands for the Icinga monitoring system.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/randomhost/icinga/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/randomhost/icinga/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p><a href="https://travis-ci.org/randomhost/icinga"><img src="https://travis-ci.org/randomhost/icinga.svg?branch=master" alt="Build Status"></a></p>
+
+<h1>
+<a id="introduction" class="anchor" href="#introduction" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Introduction</h1>
+
+<p>This package provides check and notification commands for the Icinga monitoring
+system.</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<h3>
+<a id="the-base-class" class="anchor" href="#the-base-class" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The Base class</h3>
+
+<p>The abstract <code>Base</code> class implements the following public methods which are
+available for both, check and notification classes.</p>
+
+<ul>
+<li><p><code>Base::getShortOptions()</code><br>
+Returns available short options. The return value is supposed to be passed
+to PHP's built-in <code>getopt()</code> function as the first parameter and is used for
+setting up the command line arguments accepted by the check class.</p></li>
+<li>
+<p><code>Base::getLongOptions()</code><br>
+Returns available long options. The return value is supposed to be passed to
+PHP's built-in <code>getopt()</code> function as the second parameter and is used for
+setting up the command line arguments accepted by the check class.</p>
+
+<p>The <code>Base</code> class comes with the pre-defined long option <code>--help</code> which
+triggers the built-in help method <code>Base::displayHelp()</code>.</p>
+</li>
+<li><p><code>Base::getMessage()</code><br>
+Returns the plugin output. The return value is supposed to be echoed to
+stdout and defines the status message which will be passed to Icinga.</p></li>
+<li><p><code>Base::getCode()</code><br>
+Returns the return code. The return value is supposed to be passed to PHP's
+built-in <code>exit()</code> function and defines the status code which will be passed
+to Icinga.</p></li>
+<li><p><code>Base::setOptions($options)</code><br>
+This method accepts parsed command line arguments as returned by PHP's
+built-in <code>getopt()</code> function.</p></li>
+</ul>
+
+<p>Check and notification classes should <strong>NOT</strong> extend this class directly. They
+should extend their corresponding base class <code>Check\Base</code> or <code>Notification\Base</code>
+accordingly.</p>
+
+<h3>
+<a id="check-plugins" class="anchor" href="#check-plugins" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Check plugins</h3>
+
+<p>A basic approach at using a check plugin built with this package could look like
+this:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">namespace</span> <span class="pl-en">randomhost\Icinga\Check</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">require_once</span> <span class="pl-s"><span class="pl-pds">'</span>/path/to/vendor/autoload.php<span class="pl-pds">'</span></span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$check</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-c1">ExampleService</span>();</span>
+<span class="pl-s1"><span class="pl-smi">$check</span><span class="pl-k">-&gt;</span>run();</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c1">echo</span> <span class="pl-smi">$check</span><span class="pl-k">-&gt;</span>getMessage();</span>
+<span class="pl-s1"><span class="pl-k">exit</span>(<span class="pl-smi">$check</span><span class="pl-k">-&gt;</span>getCode());</span></pre></div>
+
+<p>This will instantiate the check class for the example service and run the checks
+defined for that service. What is being checked depends on the individual check
+implementation.</p>
+
+<h4>
+<a id="the-checkbase-class" class="anchor" href="#the-checkbase-class" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The Check\Base class</h4>
+
+<p>The abstract <code>Check\Base</code> class provides common methods for extending child
+classes. It implements one public method in addition to the ones provided by
+the common <code>Base</code> class:</p>
+
+<ul>
+<li>
+<code>Check\Base::run()</code><br>
+Takes care of validating command line parameters, displaying help output and
+executing the main check plugin logic.</li>
+</ul>
+
+<p>All check classes should extend this class.</p>
+
+<h4>
+<a id="implementing-check-classes" class="anchor" href="#implementing-check-classes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Implementing check classes</h4>
+
+<p>To create a check class, simply extend the <code>Check\Base</code> class and implement a
+protected method <code>check()</code>.</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">namespace</span> <span class="pl-en">randomhost\Icinga\Check</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">class</span> <span class="pl-en">ExampleService</span> <span class="pl-k">extends</span> <span class="pl-e">Base</span> <span class="pl-k">implements</span> <span class="pl-e">Check</span></span>
+<span class="pl-s1">{</span>
+<span class="pl-s1">    <span class="pl-k">protected</span> <span class="pl-k">function</span> <span class="pl-en">check</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-c">// main check logic goes here</span></span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setMessage(<span class="pl-s"><span class="pl-pds">'</span>Everything is fine<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setCode(<span class="pl-k">self</span><span class="pl-k">::</span><span class="pl-c1">STATE_OK</span>);</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1">}</span></pre></div>
+
+<p>If your check requires command line parameters, you can define those in the
+constructor of your check class. This is also the right place to place the
+help output which is shown if a required parameter is missing.</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">namespace</span> <span class="pl-en">randomhost\Icinga\Check</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">class</span> <span class="pl-en">ExampleService</span> <span class="pl-k">extends</span> <span class="pl-e">Base</span> <span class="pl-k">implements</span> <span class="pl-e">Check</span></span>
+<span class="pl-s1">{</span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">function</span> <span class="pl-c1">__construct</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setLongOptions(</span>
+<span class="pl-s1">            <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>host:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>port:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>user:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>password:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>warningThreshold:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>criticalThreshold:<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">            )</span>
+<span class="pl-s1">        );</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setRequiredOptions(</span>
+<span class="pl-s1">            <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>host<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>port<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>user<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>password<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>warningThreshold<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>criticalThreshold<span class="pl-pds">'</span></span></span>
+<span class="pl-s1">            )</span>
+<span class="pl-s1">        );</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setHelp(<span class="pl-s"><span class="pl-pds">'</span></span></span>
+<span class="pl-s1"><span class="pl-s">Icinga plugin for checking the example service.</span></span>
+<span class="pl-s1"><span class="pl-s"></span></span>
+<span class="pl-s1"><span class="pl-s">--host              Example service IP address or hostname</span></span>
+<span class="pl-s1"><span class="pl-s">--port              Example service port</span></span>
+<span class="pl-s1"><span class="pl-s">--user              Example service user</span></span>
+<span class="pl-s1"><span class="pl-s">--password          Example service password</span></span>
+<span class="pl-s1"><span class="pl-s">--warningThreshold  Threshold to trigger the WARNING state</span></span>
+<span class="pl-s1"><span class="pl-s">--criticalThreshold Threshold to trigger the CRITICAL state</span></span>
+<span class="pl-s1"><span class="pl-s">        <span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">protected</span> <span class="pl-k">function</span> <span class="pl-en">check</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-smi">$options</span> <span class="pl-k">=</span> <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>getOptions();</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-c">// main check logic goes here</span></span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1">}</span></pre></div>
+
+<h3>
+<a id="notification-plugins" class="anchor" href="#notification-plugins" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Notification plugins</h3>
+
+<p>A basic approach at using a notification plugin built with this package could
+look like this:</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">namespace</span> <span class="pl-en">randomhost\Icinga\Notification</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">require_once</span> <span class="pl-s"><span class="pl-pds">'</span>/path/to/vendor/autoload.php<span class="pl-pds">'</span></span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-smi">$notification</span> <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-c1">ExampleNotification</span>();</span>
+<span class="pl-s1"><span class="pl-smi">$notification</span><span class="pl-k">-&gt;</span>run();</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-c1">echo</span> <span class="pl-smi">$notification</span><span class="pl-k">-&gt;</span>getMessage();</span>
+<span class="pl-s1"><span class="pl-k">exit</span>(<span class="pl-smi">$notification</span><span class="pl-k">-&gt;</span>getCode());</span></pre></div>
+
+<p>This will instantiate the notification class for the example notification plugin
+and run the logic defined for that plugin. What type of notification is being
+sent depends on the individual notification class implementation.</p>
+
+<h4>
+<a id="the-notificationbase-class" class="anchor" href="#the-notificationbase-class" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The Notification\Base class</h4>
+
+<p>The abstract <code>Notification\Base</code> class provides common methods for extending
+child classes. It implements one public method in addition to the ones provided
+by the common <code>Base</code> class:</p>
+
+<ul>
+<li>
+<code>Notification\Base::run()</code><br>
+Takes care of validating command line parameters, displaying help output and
+executing the main notification plugin logic.</li>
+</ul>
+
+<p>All notification classes should extend this class.</p>
+
+<h4>
+<a id="implementing-notification-classes" class="anchor" href="#implementing-notification-classes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Implementing notification classes</h4>
+
+<p>To create a notification class, simply extend the <code>Notification\Base</code> class and
+implement a protected method <code>send()</code>.</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">namespace</span> <span class="pl-en">randomhost\Icinga\Notification</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">class</span> <span class="pl-en">ExampleNotification</span> <span class="pl-k">extends</span> <span class="pl-e">Base</span> <span class="pl-k">implements</span> <span class="pl-e">Notification</span></span>
+<span class="pl-s1">{</span>
+<span class="pl-s1">    <span class="pl-k">protected</span> <span class="pl-k">function</span> <span class="pl-en">send</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-c">// main notification logic goes here</span></span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setMessage(<span class="pl-s"><span class="pl-pds">'</span>Notification sent<span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setCode(<span class="pl-k">self</span><span class="pl-k">::</span><span class="pl-c1">STATE_OK</span>);</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1">}</span></pre></div>
+
+<p>If your notification class requires command line parameters, you can define
+those in the constructor of your notification class. This is also the right
+place to place the help output which is shown if a required parameter is missing.</p>
+
+<div class="highlight highlight-text-html-php"><pre><span class="pl-pse">&lt;?php</span><span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">namespace</span> <span class="pl-en">randomhost\Icinga\Notification</span>;</span>
+<span class="pl-s1"></span>
+<span class="pl-s1"><span class="pl-k">class</span> <span class="pl-en">ExampleNotification</span> <span class="pl-k">extends</span> <span class="pl-e">Base</span> <span class="pl-k">implements</span> <span class="pl-e">Notification</span></span>
+<span class="pl-s1">{</span>
+<span class="pl-s1">    <span class="pl-k">public</span> <span class="pl-k">function</span> <span class="pl-c1">__construct</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setLongOptions(</span>
+<span class="pl-s1">            <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>type:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>service:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>host:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>address:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>state:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>time:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>output:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>phonenumber:<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">            )</span>
+<span class="pl-s1">        );</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setRequiredOptions(</span>
+<span class="pl-s1">            <span class="pl-c1">array</span>(</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>service<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>host<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>address<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>state<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>time<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>output<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">                <span class="pl-s"><span class="pl-pds">'</span>phonenumber<span class="pl-pds">'</span></span>,</span>
+<span class="pl-s1">            )</span>
+<span class="pl-s1">        );</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>setHelp(<span class="pl-s"><span class="pl-pds">'</span></span></span>
+<span class="pl-s1"><span class="pl-s">Icinga plugin for sending notifications via the example notification provider.</span></span>
+<span class="pl-s1"><span class="pl-s"></span></span>
+<span class="pl-s1"><span class="pl-s">--type         Notification type</span></span>
+<span class="pl-s1"><span class="pl-s">--service      Service name</span></span>
+<span class="pl-s1"><span class="pl-s">--host         Host name</span></span>
+<span class="pl-s1"><span class="pl-s">--address      Host address</span></span>
+<span class="pl-s1"><span class="pl-s">--state        Service state</span></span>
+<span class="pl-s1"><span class="pl-s">--time         Notification time</span></span>
+<span class="pl-s1"><span class="pl-s">--output       Check plugin output</span></span>
+<span class="pl-s1"><span class="pl-s">--phonenumber  User phone number</span></span>
+<span class="pl-s1"><span class="pl-s">        <span class="pl-pds">'</span></span>);</span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">    <span class="pl-k">protected</span> <span class="pl-k">function</span> <span class="pl-en">send</span>()</span>
+<span class="pl-s1">    {</span>
+<span class="pl-s1">        <span class="pl-smi">$options</span> <span class="pl-k">=</span> <span class="pl-smi">$this</span><span class="pl-k">-&gt;</span>getOptions();</span>
+<span class="pl-s1"></span>
+<span class="pl-s1">        <span class="pl-c">// main notification logic goes here</span></span>
+<span class="pl-s1">    }</span>
+<span class="pl-s1">}</span></pre></div>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>See LICENSE.txt for full license details.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">randomhost/icinga maintained by <a href="https://github.com/randomhost">randomhost</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
